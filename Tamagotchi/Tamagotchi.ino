@@ -54,6 +54,7 @@ int filler;
 int update_timer = 0;
 int selector;
 int health_damage = 0;
+int update_cycle = 50;
 
 boolean sick = false;
 boolean dead = true;
@@ -111,7 +112,7 @@ void loop() {
   if ((current_time - last_time) > 1000) {
     update_screens = true;
     update_timer++;
-    if (update_timer == 10) {
+    if (update_timer == update_cycle) {
       update_stats = true;
       update_timer = 0;
     }
@@ -551,7 +552,7 @@ void finalChecks() {
         bad[0] = false;
       }
       if (stats[1] < 300) {
-        if (stats[0] == 0) {
+        if (stats[1] == 0) {
           dead = true;
           was_alive = true;
         } else {
