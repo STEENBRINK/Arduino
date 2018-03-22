@@ -58,7 +58,6 @@ int update_cycle = 50;
 
 boolean sick = false;
 boolean dead = true;
-boolean debug = true;
 boolean button_check_a = false;
 boolean button_check_b = false;
 boolean screens = true;
@@ -75,6 +74,7 @@ unsigned long current_time;
 unsigned long last_time = 0;
 unsigned long sick_cooldown = 0;
 
+boolean debug = false;
 
 
 void setup() {
@@ -202,7 +202,7 @@ void loop() {
             lcd.print(foods[selector]);
             current_selected = selector;
           }
-          cure=false;
+          cure = false;
           //Serial.println("CARROTS");
         } else if (g_active) {
           if (selector != current_selected) {
@@ -257,13 +257,15 @@ void loop() {
         lcd.setCursor(0, 1);
         lcd.print("SCORE: " + (String)age);
       }
-      Serial.println("Health: " + (String)stats[0]);
-      Serial.println("Happiness: " + (String)stats[1]);
-      Serial.println("Hunger: " + (String)stats[2]);
-      Serial.println("Weight: " + (String)stats[3]);
-      Serial.println("Age: " + (String)age);
-      Serial.println("Sick: " + (String)sick);
-      Serial.println("");
+      if (debug) {
+        Serial.println("Health: " + (String)stats[0]);
+        Serial.println("Happiness: " + (String)stats[1]);
+        Serial.println("Hunger: " + (String)stats[2]);
+        Serial.println("Weight: " + (String)stats[3]);
+        Serial.println("Age: " + (String)age);
+        Serial.println("Sick: " + (String)sick);
+        Serial.println("");
+      }
     }
     was_alive = false;
   }
@@ -499,7 +501,7 @@ void updateStats() {
 void checkSickness() {
   unsigned long tmp = (current_time - sick_cooldown);
   long cd = 3600000;
-  Serial.println(tmp);
+  //Serial.println(tmp);
   if (tmp > cd) {
     int chance = 10;
     if (!sick) {
@@ -511,10 +513,10 @@ void checkSickness() {
       int random_chance = random(0, 100);
       if (random_chance < chance) {
         sick = true;
-        Serial.println("GOTTEN SICK");
+        //Serial.println("GOTTEN SICK");
         sick_cooldown = millis();
       } else {
-        Serial.println("NOT GOTTEN SICK");
+        //Serial.println("NOT GOTTEN SICK");
       }
     }
   }
