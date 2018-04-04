@@ -81,6 +81,8 @@ void setup() {
   //debug
   if (debug) {
     Serial.begin(9600);
+    update_cycle = 10;
+    sick = true;
   }
 
   //register pins
@@ -108,17 +110,19 @@ void setup() {
 
 
 void loop() {
+  //register the current time
   current_time = millis();
+  //update the screens every second
   if ((current_time - last_time) > 1000) {
     update_screens = true;
     update_timer++;
+    //update the stats every update cycle
     if (update_timer == update_cycle) {
       update_stats = true;
       update_timer = 0;
     }
     last_time = current_time;
   }
-
   if (!dead) {
     if (screens) {
       getPercentages();
@@ -191,6 +195,7 @@ void loop() {
             cure = true;
           }
         }
+        //displays the menuitems according to selections
         if (f_active) {
           if (cure) {
             lcd.setCursor(0, 1);
@@ -293,7 +298,7 @@ void colorWipe(uint32_t c, int wait, int type) {
   }
 }
 
-
+// Sets a pixel to a color and after a certain time changes it back to the orignal color and changes the next
 void colorChase(uint32_t c1, uint32_t c2, int type) {
   int y = round(12 * percentages[type]);
   //Serial.println(y);
@@ -332,7 +337,7 @@ void getPercentages() {
 }
 
 
-
+//get the readings of the potentiometers
 void getPotVars() {
   for (int i = 0; i < 3; i++) {
     potvars[i] = analogRead(i);
@@ -340,10 +345,11 @@ void getPotVars() {
 }
 
 
-
+//checks if there is a certain button being pressed if so, handle accordingly
 void buttonPressed() {
   if (digitalRead(BUA)) {
     //Serial.println("Button A Pressed");
+    //checks if the button is pressed for longer than a second
     for (int i = 0; i < 100; i++) {
       delay(10);
       if (!(digitalRead(BUA))) {
@@ -352,7 +358,9 @@ void buttonPressed() {
         break;
       }
     }
+    //if button is not pressed longer than a second
     if (button_check_a) {
+      //if dead bring alive, else turn of or on screens
       if (dead) {
         dead = false;
         stats[0] = 800;
@@ -368,15 +376,19 @@ void buttonPressed() {
         screens = !screens;
         //Serial.println(screens);
       }
+    //if pressed longer then a second if alive kill the tamagotchi
     } else {
-      lcd.clear();
-      lcd.print("KILLED");
-      while (digitalRead(BUA)) {
-        filler = 0;
+      if (!dead) {
+        lcd.clear();
+        lcd.print("KILLED");
+        while (digitalRead(BUA)) {
+          filler = 0;
+        }
+        dead = true;
+        was_alive = true;
       }
-      dead = true;
-      was_alive = true;
     }
+    //if screens are turned on make sure the right stuff is printed to the screens else turn them off
     if (screens) {
       lcd.backlight();
       current_stat = 6;
@@ -389,6 +401,7 @@ void buttonPressed() {
   if (screens) {
     if (digitalRead(BUB)) {
       //Serial.println("Button B Pressed");
+      //checks if the button is pressed longer than a second
       for (int i = 0; i < 100; i++) {
         delay(10);
         if (!(digitalRead(BUB))) {
@@ -397,6 +410,7 @@ void buttonPressed() {
           break;
         }
       }
+      //if not longer pressed than a second select the item
       if (button_check_b) {
         if (!dead) {
           if (f_active) {
@@ -442,6 +456,7 @@ void buttonPressed() {
             current_selected = 10;
           }
         }
+      //if button pressed longer than a second go back in the menu
       } else {
         while (digitalRead(BUB)) {
           filler = 0;
@@ -453,14 +468,6 @@ void buttonPressed() {
           f_active = false;
         }
       }
-      if (screens) {
-        lcd.backlight();
-        current_stat = 6;
-        current_selected = 6;
-      } else {
-        lcd.clear();
-        lcd.noBacklight();
-      }
     }
   }
   button_check_a = false;
@@ -468,7 +475,7 @@ void buttonPressed() {
 }
 
 
-
+//updates all the stats with their increase
 void updateStats() {
   for (int i = 0; i < 4; i++) {
     if (sick) {
@@ -486,6 +493,7 @@ void updateStats() {
   if ((!bad[0] && !bad[1] && !bad[2]) && !sick) {
     stats[0] += 5;
   }
+  //debug
   if (debug) {
     Serial.println("Health: " + (String)stats[0]);
     Serial.println("Happiness: " + (String)stats[1]);
@@ -497,7 +505,7 @@ void updateStats() {
   }
 }
 
-
+//checks if the tamagotchi is sick and makes sure it cant get sick again within a timeframe
 void checkSickness() {
   unsigned long tmp = (current_time - sick_cooldown);
   long cd = 3600000;
@@ -523,7 +531,7 @@ void checkSickness() {
 }
 
 
-
+//checks if the tamagotchi died or stats are too low or high
 void finalChecks() {
   if (!dead) {
     for (int i = 1; i < 4; i++) {
